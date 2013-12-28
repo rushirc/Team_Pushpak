@@ -111,8 +111,6 @@ void initializeBaro() {
 
 void measureBaro() {
   measureBaroSum();
-  temperature=bmp085GetTemperature(rawTemperature);
-  evaluateBaroAltitude(); 
 }
 
 void measureGroundBaro() {
@@ -120,7 +118,7 @@ void measureGroundBaro() {
   float altSum = 0.0;
   for (int i=0; i < 25; i++) {
     measureBaro();
-	altSum += baroRawAltitude;
+        altSum += baroRawAltitude;
     delay(12);
   }
   baroGroundAltitude = altSum / 25;
@@ -176,21 +174,6 @@ long bmp085GetPressure(unsigned long up)
   return p;
 }
 
-// Read 1 byte from the BMP085 at 'address'
-char bmp085Read(unsigned char address)
-{
-  unsigned char data;
-  
-  Wire.beginTransmission(BMP085_ADDRESS);
-  Wire.write(address);
-  Wire.endTransmission();
-  
-  Wire.requestFrom(BMP085_ADDRESS, 1);
-  while(!Wire.available())
-    ;
-    
-  return Wire.read();
-}
 
 // Read 2 bytes from the BMP085
 // First byte will be from 'address'
@@ -274,14 +257,16 @@ void measureBaroSum() {
     rawPressureSumCount++;
     if (pressureCount == 4) {
       
-      pressureCount = 0;
+      pressureCount = 0;//// Need to ask Nikhil
       isReadPressure = false;
     } 
     pressureCount++;
   } 
   else { // select must equal TEMPERATURE
-    rawTemperature = (long)bmp085ReadUT();
-    
+        rawTemperature = (long)bmp085ReadUT();
+        temperature=bmp085GetTemperature(rawTemperature);
+        evaluateBaroAltitude(); 
+
     isReadPressure = true;
   }
 }
@@ -299,7 +284,7 @@ if (rawPressureSumCount == 0) { // it may occur at init time that no pressure ha
 }
 
 const float getBaroAltitude() {
-  return (baroAltitude - baroGroundAltitude);
+  return (baroAltitude- baroGroundAltitude);
 }
 
 float filterSmooth(float currentData, float previousData, float smoothFactor) 
@@ -332,8 +317,8 @@ void loop()
   temperature = bmp085GetTemperature(rawTemperature);
   pressure = bmp085GetPressure(rawPressure);*/
   
-  if((millis() - timer) > 50) // 20Hz
-  {
+ // if((millis() - timer) > 50) // 20Hz
+ // {
     timer = millis();
     measureBaro();
 
@@ -346,7 +331,7 @@ void loop()
   Serial.print("Pressure: ");
   Serial.print(pressure, DEC);
   Serial.println(" Pa");*/
-}
+//}
  /* Serial.print("Altitude: ");
   Serial.print(baroRawAltitude, 2);
   Serial.println(" m");
