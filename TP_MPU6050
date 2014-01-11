@@ -149,7 +149,7 @@ void getMotion6() {
     gx = (((int16_t)buffer[8]) << 8) | buffer[9];
     gy = (((int16_t)buffer[10]) << 8) | buffer[11];
     gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-    Serial.print("Ax=");Serial.print(ax);Serial.print(" Ay=");Serial.print(ay);Serial.print(" Az=");Serial.print(az);Serial.print(" Gx=");Serial.print(gx);Serial.print(" Gy=");Serial.print(gy);Serial.print(" Gz=");Serial.println(gz);
+    Serial.print("Ax=");Serial.print((float)ax/16384);Serial.print(" Ay=");Serial.print((float)ay/16384);Serial.print(" Az=");Serial.print((float)az/16384);Serial.print(" Gx=");Serial.print((float)gx/131);Serial.print(" Gy=");Serial.print((float)gy/131);Serial.print(" Gz=");Serial.println((float)gz/131);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
