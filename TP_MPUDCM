@@ -1,0 +1,396 @@
+#include<Wire.h>
+//////////////////////////////////////////////////////////////////////////////////////////////
+float dcmMatrix[9] = {1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0};
+float kinematicsAngle[3] = {0.0,0.0,0.0};
+float sG = 0.95;
+float correctedRateVector[3] = {0.0,0.0,0.0};
+float G_Dt;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define XAXIS 0
+#define YAXIS 1
+#define ZAXIS 2
+ 7
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//Math Libarary
+void matrixMultiply(int aRows, int aCols_bRows, int bCols, float matrixC[], float matrixA[], float matrixB[])
+{
+  for (int i = 0; i < aRows * bCols; i++)
+  {
+    matrixC[i] = 0.0;
+  }
+
+  for (int i = 0; i < aRows; i++)
+  {
+    for(int j = 0; j < aCols_bRows; j++)
+    {
+      for(int k = 0;  k < bCols; k++)
+      {
+       matrixC[i * bCols + k] += matrixA[i * aCols_bRows + j] * matrixB[j * bCols + k];
+      }
+    }
+  }
+}
+
+
+void matrixAdd(int rows, int cols, float matrixC[], float matrixA[], float matrixB[])
+{
+  for (int i = 0; i < rows * cols; i++)
+  {
+    matrixC[i] = matrixA[i] + matrixB[i];
+  }
+}
+
+float vectorDotProduct(int length, float vector1[], float vector2[])
+{
+  float dotProduct = 0;
+  //int   i;
+
+  for (int i = 0; i < length; i++)
+  {
+  dotProduct += vector1[i] * vector2[i];
+  }
+
+  return dotProduct;
+}
+
+void vectorScale(int length, float scaledVector[], float inputVector[], float scalar)
+{
+  for (int i = 0; i < length; i++)
+  {
+   scaledVector[i] = inputVector[i] * scalar;
+  }
+}
+
+void vectorAdd(int length, float vectorC[], float vectorA[], float vectorB[])
+{
+  for(int i = 0; i < length; i++)
+  {
+     vectorC[i] = vectorA[i] + vectorB[i];
+  }
+}
+
+void vectorCrossProduct(float vectorC[3], float vectorA[3], float vectorB[3])
+{
+  vectorC[0] = (vectorA[1] * vectorB[2]) - (vectorA[2] * vectorB[1]);
+  vectorC[1] = (vectorA[2] * vectorB[0]) - (vectorA[0] * vectorB[2]);
+  vectorC[2] = (vectorA[0] * vectorB[1]) - (vectorA[1] * vectorB[0]);
+}
+
+void vectorSubtract(int length, float vectorC[], float vectorA[], float vectorB[])
+{
+  for(int i = 0; i < length; i++)
+  {
+     vectorC[i] = vectorA[i] - vectorB[i];
+  }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void dcmUpdate(float ax, float ay, float az, float gx, float gy, float gz, float G_Dt)
+  {
+    float accelVector[3];
+    float accelMagnitude;
+    float temp[3];
+    accelVector[XAXIS] = ax/16384.0;
+    accelVector[YAXIS] = ay/16384.0;
+    accelVector[ZAXIS] = az/16384.0;
+    
+    float wA[3];   // Angular Velocity as computed by Accelerometer
+    float wG[3];
+    
+     wG[XAXIS] = gx/131.0*3.14/180;
+     wG[YAXIS] = gy/131.0*3.14/180;
+     wG[ZAXIS] = gz/131.0*3.14/180;
+     // Serial.print("Ax=");Serial.print(accelVector[XAXIS]);Serial.print(" Ay=");Serial.print(accelVector[YAXIS]);Serial.print(" Az=");Serial.print(accelVector[ZAXIS]);Serial.print(" Gx=");Serial.print(wG[XAXIS]);Serial.print(" Gy=");Serial.print(wG[YAXIS]);Serial.print(" Gz=");Serial.println(wG[ZAXIS]);
+  
+     accelMagnitude = (sqrt(accelVector[XAXIS] * accelVector[XAXIS] + accelVector[YAXIS] * accelVector[YAXIS] + accelVector[ZAXIS] * accelVector[ZAXIS]));
+
+     accelVector[XAXIS] = accelVector[XAXIS]/accelMagnitude;
+     accelVector[YAXIS] = accelVector[YAXIS]/accelMagnitude;
+     accelVector[ZAXIS] = accelVector[ZAXIS]/accelMagnitude;
+  
+     vectorSubtract(3, &temp[XAXIS], &accelVector[XAXIS], &dcmMatrix[6]);
+     vectorCrossProduct(&wA[0], &dcmMatrix[6], &temp[0]);
+     vectorScale(3, &wA[0], &wA[0], 1/G_Dt);
+     for(int i=0;i<3;i++)
+       {
+         correctedRateVector[i] = (float)(wG[i]*sG + wA[i]*(1-sG));
+       }
+       //Serial.print("Correct Gx =");Serial.print(correctedRateVector[0]);Serial.print("Correct Gy =");Serial.print(correctedRateVector[1]);Serial.print("Correct Gz =");Serial.println(correctedRateVector[2]);
+   }
+
+void matrixUpdate(float G_Dt) 
+  {
+    float temporaryMatrix[9];
+    float updateMatrix[9];
+    float rotateangle[3];
+    for(int i=0; i<3;i++)
+      {
+        rotateangle[i]=G_Dt*correctedRateVector[i];
+      }
+      //Serial.print("rotateangle[XAXIS] =");Serial.print(rotateangle[XAXIS]);Serial.print("rotateangle[YAXIS] =");Serial.print(rotateangle[YAXIS]);Serial.print("rotateangle[ZAXIS] =");Serial.println(rotateangle[ZAXIS]); 
+ 
+    vectorCrossProduct(&updateMatrix[6],&rotateangle[0],&dcmMatrix[6]);
+    vectorCrossProduct(&updateMatrix[3],&rotateangle[0],&dcmMatrix[3]);
+    vectorCrossProduct(&updateMatrix[0],&rotateangle[0],&dcmMatrix[0]);
+
+
+   /*  updateMatrix[0] =  0;
+     updateMatrix[1] = -G_Dt * correctedRateVector[ZAXIS];    // -r
+     updateMatrix[2] =  G_Dt * correctedRateVector[YAXIS];  //  q
+     updateMatrix[3] =  G_Dt * correctedRateVector[ZAXIS];    //  r
+     updateMatrix[4] =  0;
+     updateMatrix[5] = -G_Dt * correctedRateVector[XAXIS];   // -p
+     updateMatrix[6] = -G_Dt * correctedRateVector[YAXIS];  // -q
+     updateMatrix[7] =  G_Dt * correctedRateVector[XAXIS];   //  p
+     updateMatrix[8] =  0;*/ 
+
+     matrixAdd(3, 3, dcmMatrix, dcmMatrix, updateMatrix);
+   }
+
+
+void normalize() 
+  {
+    float error=0;
+    float temporary[9];
+    float renorm=0;
+  
+    error= -vectorDotProduct(3, &dcmMatrix[0], &dcmMatrix[3]) * 0.5;         // eq.18
+
+    vectorScale(3, &temporary[0], &dcmMatrix[3], error);                     // eq.19
+    vectorScale(3, &temporary[3], &dcmMatrix[0], error);                     // eq.19
+  
+    vectorAdd(6, &temporary[0], &temporary[0], &dcmMatrix[0]);               // eq.19
+  
+    vectorCrossProduct(&temporary[6],&temporary[0],&temporary[3]);           // eq.20
+  
+    for(byte v=0; v<9; v+=3) {
+      renorm = 0.5 *(3 - vectorDotProduct(3, &temporary[v],&temporary[v]));  // eq.21
+      vectorScale(3, &dcmMatrix[v], &temporary[v], renorm);
+    }
+  }
+
+
+void eulerAngles(void)
+  {
+    kinematicsAngle[XAXIS]  =  (atan2(dcmMatrix[7], dcmMatrix[8]))*180.0/3.14;
+    kinematicsAngle[YAXIS] =  (-asin(dcmMatrix[6]))*180.0/3.14;
+    kinematicsAngle[ZAXIS]   = (atan2(dcmMatrix[3], dcmMatrix[0]))*180.0/3.14;
+     Serial.print("XAXIS=");Serial.print(kinematicsAngle[XAXIS]);Serial.print(" YAXIS=");Serial.print(kinematicsAngle[YAXIS]);Serial.print(" ZAXIS=");Serial.println(kinematicsAngle[ZAXIS]);
+  } 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define MPU6050_DEFAULT_ADDRESS     0x68
+#define MPU6050_RA_PWR_MGMT_1       0x6B
+#define MPU6050_RA_ACCEL_CONFIG     0x1C
+#define MPU6050_RA_GYRO_CONFIG      0x1B
+#define MPU6050_CLOCK_PLL_XGYRO     0x01
+#define MPU6050_RA_SMPLRT_DIV       0x19
+#define MPU6050_RA_FIFO_EN          0x23
+#define MPU6050_RA_ACCEL_XOUT_H     0x3B
+
+/////////////////////////////////////////////////////////////////////////////
+#define MPU6050_GYRO_FS_250         0x00
+#define MPU6050_GYRO_FS_500         0x01
+#define MPU6050_GYRO_FS_1000        0x02
+#define MPU6050_GYRO_FS_2000        0x03
+
+#define MPU6050_ACCEL_FS_2          0x00
+#define MPU6050_ACCEL_FS_4          0x01
+#define MPU6050_ACCEL_FS_8          0x02
+#define MPU6050_ACCEL_FS_16         0x03
+
+////////////////////////////////////////////////////////////////////////////
+#define MPU6050_PWR1_SLEEP_BIT          6
+#define MPU6050_ACONFIG_AFS_SEL_BIT     4
+#define MPU6050_GCONFIG_FS_SEL_BIT      4
+#define MPU6050_PWR1_CLKSEL_BIT         2
+
+#define MPU6050_TEMP_FIFO_EN_BIT    7
+#define MPU6050_XG_FIFO_EN_BIT      6
+#define MPU6050_YG_FIFO_EN_BIT      5
+#define MPU6050_ZG_FIFO_EN_BIT      4
+#define MPU6050_ACCEL_FIFO_EN_BIT   3
+
+//////////////////////////////////////////////////////////////////////////////
+#define MPU6050_ACONFIG_AFS_SEL_LENGTH      2
+#define MPU6050_GCONFIG_FS_SEL_LENGTH       2
+#define MPU6050_PWR1_CLKSEL_LENGTH      3
+
+//////////////////////////////////////////////////////////////////////////////////////
+int devAddr = MPU6050_DEFAULT_ADDRESS;
+uint8_t buffer[14];
+int first=1;
+float currenttime, previoustime;
+int16_t ax,ay,az,gx,gy,gz;
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//I2C Functions
+int8_t readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data) {
+    uint8_t b;
+    uint8_t count = readByte(devAddr, regAddr, &b);
+    *data = b & (1 << bitNum);
+    return count;
+}
+
+bool writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data) {
+    uint8_t b;
+    readByte(devAddr, regAddr, &b);
+    b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
+    return writeByte(devAddr, regAddr, b);
+}
+
+bool writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data) {
+    return writeBytes(devAddr, regAddr, 1, &data);
+}
+
+bool writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t* data) {
+    uint8_t status = 0;
+
+    Wire.beginTransmission(devAddr);
+    Wire.write((uint8_t) regAddr); // send address
+    for (uint8_t i = 0; i < length; i++) {
+            Wire.write((uint8_t) data[i]);
+    }
+    status = Wire.endTransmission();
+    return status == 0;
+}
+
+int8_t readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data) {
+    return readBytes(devAddr, regAddr, 1, data);
+}
+
+int8_t readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data) {
+            int8_t count = 0;
+            uint32_t t1 = millis();
+
+            for (uint8_t k = 0; k < length; k += min(length, BUFFER_LENGTH)) {
+                Wire.beginTransmission(devAddr);
+                Wire.write(regAddr);
+                Wire.endTransmission();
+                Wire.beginTransmission(devAddr);
+                Wire.requestFrom(devAddr, (uint8_t)min(length - k, BUFFER_LENGTH));
+        
+                for (; Wire.available(); count++) {
+                    data[count] = Wire.read();
+                    #ifdef I2CDEV_SERIAL_DEBUG
+                        Serial.print(data[count], HEX);
+                        if (count + 1 < length) Serial.print(" ");
+                    #endif
+                }
+            }
+       }
+  bool writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data) {
+    //      010 value to write
+    // 76543210 bit numbers
+    //    xxx   args: bitStart=4, length=3
+    // 00011100 mask byte
+    // 10101111 original value (sample)
+    // 10100011 original & ~mask
+    // 10101011 masked | value
+    uint8_t b;
+    if (readByte(devAddr, regAddr, &b) != 0) {
+        uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+        data <<= (bitStart - length + 1); // shift data into correct position
+        data &= mask; // zero all non-important bits in data
+        b &= ~(mask); // zero all important bits in existing byte
+        b |= data; // combine data with existing byte
+        return writeByte(devAddr, regAddr, b);
+    } else {
+        return false;
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////       
+void setRate(uint8_t rate) {
+    writeByte(devAddr, MPU6050_RA_SMPLRT_DIV, rate);
+}
+void setTempFIFOEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_TEMP_FIFO_EN_BIT, enabled);
+}
+void setXGyroFIFOEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_XG_FIFO_EN_BIT, enabled);
+}
+void setYGyroFIFOEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_YG_FIFO_EN_BIT, enabled);
+}
+void setZGyroFIFOEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ZG_FIFO_EN_BIT, enabled);
+}
+void setAccelFIFOEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ACCEL_FIFO_EN_BIT, enabled);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+void getMotion6() {
+  if(first)
+    {
+      previoustime=millis();
+      first=0;
+    }
+    readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 14, buffer);
+    ax = ((((int16_t)buffer[0]) << 8) | buffer[1]);
+    ay = ((((int16_t)buffer[2]) << 8) | buffer[3]);
+    az = ((((int16_t)buffer[4]) << 8) | buffer[5]);
+    gx = ((((int16_t)buffer[8]) << 8) | buffer[9]);
+    gy = ((((int16_t)buffer[10]) << 8) | buffer[11]);
+    gz = ((((int16_t)buffer[12]) << 8) | buffer[13]);
+    currenttime=millis();
+    G_Dt=(currenttime-previoustime)/1000.0;
+   // Serial.print("Time Interval =");Serial.println(G_Dt);
+//   Serial.print("Ax=");Serial.print(ax);Serial.print(" Ay=");Serial.print(ay);Serial.print(" Az=");Serial.print(az);Serial.print(" Gx=");Serial.print((float)gx);Serial.print(" Gy=");Serial.print((float)gy);Serial.print(" Gz=");Serial.println((float)gz);
+    previoustime=currenttime;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void setSleepEnabled(bool enabled) {
+    writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled);
+}
+void setFullScaleAccelRange(uint8_t range) {
+    writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range);
+}
+void setFullScaleGyroRange(uint8_t range) {
+    writeBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
+}
+void setClockSource(uint8_t source) {
+    writeBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
+}
+void initialize() {
+    setClockSource(MPU6050_CLOCK_PLL_XGYRO);
+    setFullScaleGyroRange(MPU6050_GYRO_FS_250);
+    setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
+    setSleepEnabled(false); // thanks to Jack Elston for pointing this one out!
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TEST RUN FUNCTIONS
+bool getSleepEnabled() {
+    readBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, buffer);
+    return buffer[0];
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// the setup routine runs once when you press reset:
+void setup() { 
+Serial.begin(115200);
+delay(3000);
+Wire.begin();
+//Serial.print("Sleep State before");Serial.println(getSleepEnabled());
+initialize();
+//Serial.print("Sleep State after");Serial.println(getSleepEnabled());
+
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+
+  getMotion6();
+  dcmUpdate(ax,ay,az,gx,gy,gz,G_Dt);
+  matrixUpdate(G_Dt);
+  normalize();
+  eulerAngles();
+  
+
+}
