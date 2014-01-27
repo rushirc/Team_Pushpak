@@ -1,0 +1,55 @@
+float ref_pressure,air_pressure,pressure_diff,airspeed;
+int AIRSPEED_CH = A7;
+int first = 1;
+float airspeed_ratio = 1.5191;
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+float measureADC(int channel) {
+  float temp;
+  temp = analogRead(channel);
+  return temp;
+}
+
+  
+float measure_static() {
+  float Temp = measureADC(AIRSPEED_CH);
+      for (int i=1;i<=200;i++)
+    {
+      Temp = (measureADC(AIRSPEED_CH))*0.25 + Temp*0.75;
+      
+      delay(20);
+    }
+    return Temp;
+}
+
+void measure_AIRSPEED() {
+  if(first) {
+        air_pressure = measureADC(AIRSPEED_CH)*0.25 + ref_pressure*0.75;
+        first=0;
+  }
+  else {
+        air_pressure = measureADC(AIRSPEED_CH)*0.25 + air_pressure*0.75;
+  }
+  
+if (air_pressure >= ref_pressure) {
+        pressure_diff = air_pressure - ref_pressure;
+  }
+else {
+        pressure_diff = 0.0;
+   }
+  
+   airspeed = sqrt(pressure_diff*airspeed_ratio);
+Serial.print("Air Speed: "); Serial.print(airspeed); Serial.println(" m/s");
+
+}
+
+/////////////////////////////////////////////////////////////////////////////
+void setup() {
+  Serial.begin(115200)
+ ref_pressure = measure_static();
+}
+
+void loop() {
+ measure_AIRSPEED();
+}
