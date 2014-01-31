@@ -1,5 +1,6 @@
-float ref_pressure,air_pressure,pressure_diff,airspeed;
-int AIRSPEED_CH = A7;
+float ref_pressure,  air_pressure;
+float pressure_diff,  airspeed;
+int AIRSPEED_CH = A4;
 int first = 1;
 float airspeed_ratio = 1.5191;
 
@@ -46,7 +47,7 @@ Serial.print("Air Speed: "); Serial.print(airspeed); Serial.println(" m/s");
 
 /////////////////////////////////////////////////////////////////////////////
 void setup() {
-  Serial.begin(115200)
+  Serial.begin(115200);
  ref_pressure = measure_static();
 }
 
