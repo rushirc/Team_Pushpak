@@ -62,20 +62,6 @@ struct gpsConfigEntry gpsConfigEntries[] = {UBLOX_CONFIGS};
 GeodeticPosition currentPosition;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void initializeGpsData() {
-
-  gpsData.lat = GPS_INVALID_ANGLE;
-  gpsData.lon = GPS_INVALID_ANGLE;
-  gpsData.course = GPS_INVALID_ANGLE;
-  gpsData.speed = GPS_INVALID_SPEED;
-  gpsData.height = GPS_INVALID_ALTITUDE;
-  gpsData.accuracy = GPS_INVALID_ACCURACY;
-  gpsData.fixage = GPS_INVALID_AGE;
-  gpsData.state = GPS_DETECTING;
-  gpsData.sentences = 0;
-  gpsData.sats = 0;
-  gpsData.fixtime = 0xFFFFFFFF;
-}
 
 void gpsSendConfig() {
 
@@ -98,23 +84,18 @@ void gpsSendConfig() {
   }
 
 }
-void initializeGps() {
-
-    gpsData.baudrate = 2;
-    Serial2.begin(gpsBaudRates[gpsData.baudrate]);
-    ubloxInit();
-    initializeGpsData();
- }
 
 void updateGps() {
 
   gpsData.idlecount++;
-
+   if(gpsData.idlecount == 200)    {
+     //Serial.println("NO data");
+     gpsData.idlecount = 0;
+   }
   while (Serial2.available()) {
     unsigned char c = Serial2.read();
     int ret=0;
 
-    // If we are detecting run all parsers, stopping if any reports success
     if (gpsData.state == GPS_DETECTING) {
         ret = ubloxProcessData(c);
         if (ret) {
@@ -130,6 +111,12 @@ void updateGps() {
       ret = ubloxProcessData(c);
     }
 
+  if (gpsConfigTimer) {
+    if (gpsConfigTimer==1) {
+      gpsSendConfig();
+    }
+    gpsConfigTimer--;
+  }
     // Upon a successfully parsed sentence, zero the idlecounter and update position data
     if (ret) {
       if (gpsData.state == GPS_DETECTING) {
@@ -139,6 +126,7 @@ void updateGps() {
       currentPosition.latitude=gpsData.lat;
       currentPosition.longitude=gpsData.lon;
       currentPosition.altitude=gpsData.height;
+      Serial.print("Latitutde = ");Serial.print(currentPosition.latitude);Serial.print(" Longitude = ");Serial.print(currentPosition.longitude);Serial.print(" Altitude = ");Serial.println(currentPosition.altitude);
     }
   }
 
@@ -151,6 +139,29 @@ void updateGps() {
   }
 
   }
+
+void initializeGpsData() {
+
+  gpsData.lat = GPS_INVALID_ANGLE;
+  gpsData.lon = GPS_INVALID_ANGLE;
+  gpsData.course = GPS_INVALID_ANGLE;
+  gpsData.speed = GPS_INVALID_SPEED;
+  gpsData.height = GPS_INVALID_ALTITUDE;
+  gpsData.accuracy = GPS_INVALID_ACCURACY;
+  gpsData.fixage = GPS_INVALID_AGE;
+  gpsData.state = GPS_DETECTING;
+  gpsData.sentences = 0;
+  gpsData.sats = 0;
+  gpsData.fixtime = 0xFFFFFFFF;
+}
+
+void initializeGps() {
+
+    gpsData.baudrate = 2;
+    Serial2.begin(gpsBaudRates[gpsData.baudrate]);
+    ubloxInit();
+    initializeGpsData();
+ }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 struct ublox_NAV_STATUS { // 01 03 (16)
@@ -236,25 +247,30 @@ void ubloxParseData() {// uses publib vars
       gpsData.lon = ubloxMessage.nav_posllh.lon;
       gpsData.height = ubloxMessage.nav_posllh.height;
       gpsData.accuracy = ubloxMessage.nav_posllh.hAcc;
+      Serial.print("Accuracy: ");Serial.print(gpsData.accuracy);
       gpsData.fixtime = ubloxMessage.nav_posllh.iTow;
     }
     else if (ubloxId==3) { //NAV:STATUS
       switch (ubloxMessage.nav_status.gpsFix) {
         case 2: 
           gpsData.state = GPS_FIX2D;
+          Serial.print(" 2D Fix ");
           break;
 		  
         case 3:
           gpsData.state = GPS_FIX3D;
+          Serial.print(" 3D Fix ");
           break;
 		  
         default:
           gpsData.state = GPS_NOFIX;
+          Serial.print(" No Fix ");
           break;
       }
     }
     else if (ubloxId==6) { // NAV:SOL
       gpsData.sats = ubloxMessage.nav_sol.numSV;
+      Serial.print("NO. os Sats: "); Serial.print(gpsData.sats);
     }
     else if (ubloxId==18) { // NAV:VELNED
       gpsData.course = ubloxMessage.nav_velned.heading / 100; // 10E-5 to millidegrees
@@ -355,9 +371,10 @@ int ubloxProcessData(unsigned char data) {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 void setup()  {
-  
+Serial.begin(115200);
+initializeGps();
 }
 
 void loop()  {
-  
+ updateGps(); 
 }
