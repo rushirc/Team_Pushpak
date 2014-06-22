@@ -1,0 +1,303 @@
+#define	MAV_MODE_FLAG_CUSTOM_MODE_ENABLED 1 /* 0b00000001 Reserved for future use. | */
+#define	MAV_MODE_FLAG_TEST_ENABLED 2 /* 0b00000010 system has a test mode enabled. This flag is intended for temporary system tests and should not be used for stable implementations. | */
+#define	MAV_MODE_FLAG_AUTO_ENABLED 4 /* 0b00000100 autonomous mode enabled, system finds its own goal positions. Guided flag can be set or not, depends on the actual implementation. | */
+#define	MAV_MODE_FLAG_GUIDED_ENABLED 8 /* 0b00001000 guided mode enabled, system flies MISSIONs / mission items. | */
+#define	MAV_MODE_FLAG_STABILIZE_ENABLED 16 /* 0b00010000 system stabilizes electronically its attitude (and optionally position). It needs however further control inputs to move around. | */
+#define	MAV_MODE_FLAG_HIL_ENABLED 32 /* 0b00100000 hardware in the loop simulation. All motors / actuators are blocked, but internal software is full operational. | */
+#define	MAV_MODE_FLAG_MANUAL_INPUT_ENABLED 64 /* 0b01000000 remote control input is enabled. | */
+#define	MAV_MODE_FLAG_SAFETY_ARMED 128 /* 0b10000000 MAV safety set to armed. Motors are enabled / running / can start. Ready to fly. | */
+#define	MAV_MODE_FLAG_ENUM_END 129 /*  | */
+
+#define RATE_FLIGHT_MODE 0
+#define ATTITUDE_FLIGHT_MODE 1
+
+#define ON 1
+#define OFF 0
+
+#define	MAV_STATE_UNINIT 0 /* Uninitialized system, state is unknown. | */
+#define	MAV_STATE_BOOT 1 /* System is booting up. | */
+#define	MAV_STATE_CALIBRATING 2 /* System is calibrating and not flight-ready. | */
+#define	MAV_STATE_STANDBY 3 /* System is grounded and on standby. It can be launched any time. | */
+#define	MAV_STATE_ACTIVE 4 /* System is active and might be already airborne. Motors are engaged. | */
+#define	MAV_STATE_CRITICAL 5 /* System is in a non-normal flight mode. It can however still navigate. | */
+#define	MAV_STATE_EMERGENCY 6 /* System is in a non-normal flight mode. It lost control over parts or over the whole airframe. It is in mayday and going down. | */
+#define	MAV_STATE_POWEROFF 7 /* System just initialized its power-down sequence, will shut down now. | */
+#define	MAV_STATE_ENUM_END 8 /*  | */
+
+#define MAV_SYSTEM_ID 100
+
+#define MAV_COMPONENT_ID MAV_COMP_ID_IMU
+
+#define	MAV_COMP_ID_ALL 0 /*  | */
+#define	MAV_COMP_ID_CAMERA 100 /*  | */
+#define	MAV_COMP_ID_SERVO1 140 /*  | */
+#define	MAV_COMP_ID_SERVO2 141 /*  | */
+#define	MAV_COMP_ID_SERVO3 142 /*  | */
+#define	MAV_COMP_ID_SERVO4 143 /*  | */
+#define	MAV_COMP_ID_SERVO5 144 /*  | */
+#define	MAV_COMP_ID_SERVO6 145 /*  | */
+#define	MAV_COMP_ID_SERVO7 146 /*  | */
+#define	MAV_COMP_ID_SERVO8 147 /*  | */
+#define	MAV_COMP_ID_SERVO9 148 /*  | */
+#define	MAV_COMP_ID_SERVO10 149 /*  | */
+#define	MAV_COMP_ID_SERVO11 150 /*  | */
+#define	MAV_COMP_ID_SERVO12 151 /*  | */
+#define	MAV_COMP_ID_SERVO13 152 /*  | */
+#define	MAV_COMP_ID_SERVO14 153 /*  | */
+#define	MAV_COMP_ID_MAPPER 180 /*  | */
+#define	MAV_COMP_ID_MISSIONPLANNER 190 /*  | */
+#define	MAV_COMP_ID_PATHPLANNER 195 /*  | */
+#define	MAV_COMP_ID_IMU 200 /*  | */
+#define	MAV_COMP_ID_IMU_2 201 /*  | */
+#define	MAV_COMP_ID_IMU_3 202 /*  | */
+#define	MAV_COMP_ID_GPS 220 /*  | */
+#define	MAV_COMP_ID_UDP_BRIDGE 240 /*  | */
+#define	MAV_COMP_ID_UART_BRIDGE 241 /*  | */
+#define	MAV_COMP_ID_SYSTEM_CONTROL 250 /*  | */
+#define	MAV_COMPONENT_ENUM_END 251 /*  | */
+
+#define MAVLINK_MAX_PAYLOAD_LEN 255 ///< Maximum payload length
+#define MAVLINK_NUM_CHECKSUM_BYTES 2
+
+#define	MAV_TYPE_GENERIC 0 /* Generic micro air vehicle. | */
+#define	MAV_TYPE_FIXED_WING 1 /* Fixed wing aircraft. | */
+#define	MAV_TYPE_QUADROTOR 2 /* Quadrotor | */
+#define	MAV_TYPE_COAXIAL 3 /* Coaxial helicopter | */
+#define	MAV_TYPE_HELICOPTER 4 /* Normal helicopter with tail rotor. | */
+#define	MAV_TYPE_ANTENNA_TRACKER 5 /* Ground installation | */
+#define	MAV_TYPE_GCS 6 /* Operator control unit / ground control station | */
+#define	MAV_TYPE_AIRSHIP 7 /* Airship, controlled | */
+#define	MAV_TYPE_FREE_BALLOON 8 /* Free balloon, uncontrolled | */
+#define	MAV_TYPE_ROCKET 9 /* Rocket | */
+#define	MAV_TYPE_GROUND_ROVER 10 /* Ground rover | */
+#define	MAV_TYPE_SURFACE_BOAT 11 /* Surface vessel, boat, ship | */
+#define	MAV_TYPE_SUBMARINE 12 /* Submarine | */
+#define	MAV_TYPE_HEXAROTOR 13 /* Hexarotor | */
+#define	MAV_TYPE_OCTOROTOR 14 /* Octorotor | */
+#define	MAV_TYPE_TRICOPTER 15 /* Octorotor | */
+#define	MAV_TYPE_FLAPPING_WING 16 /* Flapping wing | */
+#define	MAV_TYPE_KITE 17 /* Flapping wing | */
+#define	MAV_TYPE_ENUM_END 18 /*  | */
+
+#define	MAV_AUTOPILOT_GENERIC 0 /* Generic autopilot, full support for everything | */
+#define	MAV_AUTOPILOT_PIXHAWK 1 /* PIXHAWK autopilot, http://pixhawk.ethz.ch | */
+#define	MAV_AUTOPILOT_SLUGS 2 /* SLUGS autopilot, http://slugsuav.soe.ucsc.edu | */
+#define	MAV_AUTOPILOT_ARDUPILOTMEGA 3 /* ArduPilotMega / ArduCopter, http://diydrones.com | */
+#define	MAV_AUTOPILOT_OPENPILOT 4 /* OpenPilot, http://openpilot.org | */
+#define	MAV_AUTOPILOT_GENERIC_WAYPOINTS_ONLY 5 /* Generic autopilot only supporting simple waypoints | */
+#define	MAV_AUTOPILOT_GENERIC_WAYPOINTS_AND_SIMPLE_NAVIGATION_ONLY 6 /* Generic autopilot supporting waypoints and other simple navigation commands | */
+#define	MAV_AUTOPILOT_GENERIC_MISSION_FULL 7 /* Generic autopilot supporting the full mission command set | */
+#define	MAV_AUTOPILOT_INVALID 8 /* No valid autopilot, e.g. a GCS or other MAVLink component | */
+#define	MAV_AUTOPILOT_PPZ 9 /* PPZ UAV - http://nongnu.org/paparazzi | */
+#define	MAV_AUTOPILOT_UDB 10 /* UAV Dev Board | */
+#define	MAV_AUTOPILOT_FP 11  /* FlexiPilot | */
+#define	MAV_AUTOPILOT_ENUM_END 12 /*  | */
+
+#define _MAV_PAYLOAD_NON_CONST(msg) ((char *)(&((msg)->payload64[0])))
+
+#define MAVLINK_MSG_ID_HEARTBEAT 0
+
+#define MAVLINK_STX 254
+
+typedef enum {
+    MAVLINK_PARSE_STATE_UNINIT=0,
+    MAVLINK_PARSE_STATE_IDLE,
+    MAVLINK_PARSE_STATE_GOT_STX,
+    MAVLINK_PARSE_STATE_GOT_SEQ,
+    MAVLINK_PARSE_STATE_GOT_LENGTH,
+    MAVLINK_PARSE_STATE_GOT_SYSID,
+    MAVLINK_PARSE_STATE_GOT_COMPID,
+    MAVLINK_PARSE_STATE_GOT_MSGID,
+    MAVLINK_PARSE_STATE_GOT_PAYLOAD,
+    MAVLINK_PARSE_STATE_GOT_CRC1
+} mavlink_parse_state_t; ///< The state machine for the comm parser
+
+#define MAVLINK_COMM_NUM_BUFFERS 4
+#define MAVLINK_CORE_HEADER_LEN 5 ///< Length of core header (of the comm. layer): message length (1 byte) + message sequence (1 byte) + message system id (1 byte) + message component id (1 byte) + message type id (1 byte)
+#define MAVLINK_NUM_HEADER_BYTES (MAVLINK_CORE_HEADER_LEN + 1) ///< Length of all header bytes, including core and checksum
+#define MAVLINK_NUM_CHECKSUM_BYTES 2
+#define MAVLINK_NUM_NON_PAYLOAD_BYTES (MAVLINK_NUM_HEADER_BYTES + MAVLINK_NUM_CHECKSUM_BYTES)
+
+#define X25_INIT_CRC 0xffff
+
+#define mavlink_ck_a(msg) *((msg)->len + (uint8_t *)_MAV_PAYLOAD_NON_CONST(msg))
+#define mavlink_ck_b(msg) *(((msg)->len+(uint16_t)1) + (uint8_t *)_MAV_PAYLOAD_NON_CONST(msg))
+
+typedef enum {
+    MAVLINK_COMM_0,
+    MAVLINK_COMM_1,
+    MAVLINK_COMM_2,
+    MAVLINK_COMM_3
+} mavlink_channel_t;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct __mavlink_message {
+	uint16_t checksum; /// sent at end of packet
+	uint8_t magic;   ///< protocol magic marker
+	uint8_t len;     ///< Length of payload
+	uint8_t seq;     ///< Sequence of packet
+	uint8_t sysid;   ///< ID of message sender system/aircraft
+	uint8_t compid;  ///< ID of the message sender component
+	uint8_t msgid;   ///< ID of message in payload
+	uint64_t payload64[(MAVLINK_MAX_PAYLOAD_LEN+MAVLINK_NUM_CHECKSUM_BYTES+7)/8];
+} mavlink_message_t ;
+mavlink_message_t msg;
+
+typedef struct __mavlink_status {
+    uint8_t msg_received;               ///< Number of received messages
+    uint8_t buffer_overrun;             ///< Number of buffer overruns
+    uint8_t parse_error;                ///< Number of parse errors
+    mavlink_parse_state_t parse_state;  ///< Parsing state machine
+    uint8_t packet_idx;                 ///< Index in current packet
+    uint8_t current_rx_seq;             ///< Sequence number of last packet received
+    uint8_t current_tx_seq;             ///< Sequence number of last packet sent
+    uint16_t packet_rx_success_count;   ///< Received packets
+    uint16_t packet_rx_drop_count;      ///< Number of packet drops
+} mavlink_status_t;
+
+mavlink_status_t (*mavlink_get_channel_status(uint8_t chan))  {
+	static mavlink_status_t m_mavlink_status[MAVLINK_COMM_NUM_BUFFERS];
+	return &m_mavlink_status[chan];
+}
+
+typedef struct __mavlink_heartbeat_t
+{
+ uint32_t custom_mode; ///< A bitfield for use for autopilot-specific flags.
+ uint8_t type; ///< Type of the MAV (quadrotor, helicopter, etc., up to 15 types, defined in MAV_TYPE ENUM)
+ uint8_t autopilot; ///< Autopilot type / class. defined in MAV_AUTOPILOT ENUM
+ uint8_t base_mode; ///< System mode bitfield, see MAV_MODE_FLAGS ENUM in mavlink/include/mavlink_types.h
+ uint8_t system_status; ///< System status flag, see MAV_STATE ENUM
+ uint8_t mavlink_version; ///< MAVLink version, not writable by user, gets added by protocol because of magic data type: uint8_t_mavlink_version
+} mavlink_heartbeat_t;
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static inline void crc_accumulate(uint8_t data, uint16_t *crcAccum)
+{
+        /*Accumulate one byte of data into the CRC*/
+        uint8_t tmp;
+
+        tmp = data ^ (uint8_t)(*crcAccum &0xff);
+        tmp ^= (tmp<<4);
+        *crcAccum = (*crcAccum>>8) ^ (tmp<<8) ^ (tmp <<3) ^ (tmp>>4);
+}
+
+static inline void crc_init(uint16_t* crcAccum)
+{
+        *crcAccum = X25_INIT_CRC;
+}
+
+static inline uint16_t crc_calculate(const uint8_t* pBuffer, uint16_t length)
+{
+        uint16_t crcTmp;
+        crc_init(&crcTmp);
+	while (length--) {
+                crc_accumulate(*pBuffer++, &crcTmp);
+        }
+        return crcTmp;
+}
+
+
+uint16_t mavlink_finalize_message_chan(mavlink_message_t (*msg), uint8_t system_id, uint8_t component_id, 
+						      uint8_t chan, uint8_t length)
+
+{
+	// This code part is the same for all messages;
+	uint16_t checksum;
+	msg->magic = MAVLINK_STX;
+	msg->len = length;
+	msg->sysid = system_id;
+	msg->compid = component_id;
+	// One sequence number per component
+	msg->seq = mavlink_get_channel_status(chan)->current_tx_seq;
+	mavlink_get_channel_status(chan)->current_tx_seq = mavlink_get_channel_status(chan)->current_tx_seq+1;
+	checksum = crc_calculate((uint8_t*)&msg->len, length + MAVLINK_CORE_HEADER_LEN);
+
+	mavlink_ck_a(msg) = (uint8_t)(checksum & 0xFF);
+	mavlink_ck_b(msg) = (uint8_t)(checksum >> 8);
+
+	return length + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+}
+
+uint16_t mavlink_finalize_message(mavlink_message_t (*msg), uint8_t system_id, uint8_t component_id, uint8_t length,uint8_t crc_extra)
+{
+	return mavlink_finalize_message_chan(msg, system_id, component_id, MAVLINK_COMM_0, length);
+}
+
+uint16_t mavlink_msg_to_send_buffer(uint8_t *buffer, const mavlink_message_t (*msg))
+{
+	memcpy(buffer, (const uint8_t *)&msg->magic, MAVLINK_NUM_NON_PAYLOAD_BYTES + (uint16_t)msg->len);
+	return MAVLINK_NUM_NON_PAYLOAD_BYTES + (uint16_t)msg->len;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static inline uint16_t mavlink_msg_heartbeat_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t (*msg),
+						       uint8_t type, uint8_t autopilot, uint8_t base_mode, uint32_t custom_mode, uint8_t system_status)
+{
+
+	mavlink_heartbeat_t packet;
+	packet.custom_mode = custom_mode;
+	packet.type = type;
+	packet.autopilot = autopilot;
+	packet.base_mode = base_mode;
+	packet.system_status = system_status;
+	packet.mavlink_version = 3;
+
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, 9);
+
+	msg->msgid = MAVLINK_MSG_ID_HEARTBEAT;
+	return mavlink_finalize_message(msg, system_id, component_id, 9, 50);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+int systemMode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+int systemStatus = MAV_STATE_UNINIT;
+int systemType;
+int autopilotType = MAV_AUTOPILOT_GENERIC;
+uint16_t len;
+uint8_t buf[9];
+
+byte flightMode = RATE_FLIGHT_MODE;
+byte motorArmed = OFF;
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+void sendSerialHeartbeat() {
+  systemMode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+
+  if (flightMode == ATTITUDE_FLIGHT_MODE) {
+    systemMode |= MAV_MODE_FLAG_STABILIZE_ENABLED;
+  }
+
+  #if defined(UseGPSNavigator)
+    if (navigationState == ON || positionHoldState == ON) {
+      systemMode |= MAV_MODE_FLAG_GUIDED_ENABLED;
+    }
+  #endif
+
+  systemMode |= MAV_MODE_FLAG_MANUAL_INPUT_ENABLED;
+
+  if (motorArmed) {
+    systemMode |= MAV_MODE_FLAG_SAFETY_ARMED;
+    systemStatus = MAV_STATE_ACTIVE;
+  }
+  else {
+    systemStatus = MAV_STATE_STANDBY;
+  }
+
+  mavlink_msg_heartbeat_pack(MAV_SYSTEM_ID, MAV_COMPONENT_ID, &msg, systemType, autopilotType, systemMode, 0, systemStatus);
+  len = mavlink_msg_to_send_buffer(buf, &msg);
+  Serial.write(buf, len);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setup()  {
+  Serial.begin(57600);
+}
+
+void loop()  {
+    sendSerialHeartbeat();   
+}
+
